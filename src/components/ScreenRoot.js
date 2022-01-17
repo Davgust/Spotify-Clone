@@ -9,11 +9,11 @@ import MobileNav from './MobileNav/MobileNav';
 import Player from './Player/Player';
 import Login from './Login/Login';
 import { connect } from 'react-redux';
-import { fetchUser, fetchPlaylist } from '../reduxStore/actions/index';
+import { fetchUser, fetchPlaylist, addDeviceId } from '../reduxStore/actions/index';
 
 const spotifyApi = new SpotifyWebApi();
 
-const setupSpotifyConnect = (token, setDeviceId) => {
+const setupSpotifyConnect = (token, addDeviceId) => {
 	const player = new window.Spotify.Player({
 		name: 'Web Playback SDK Quick Start Player',
 		getOAuthToken: (cb) => {
@@ -25,7 +25,7 @@ const setupSpotifyConnect = (token, setDeviceId) => {
 	// Ready
 	player.addListener('ready', ({ device_id }) => {
 		console.log('Ready with Device ID', device_id);
-		setDeviceId(device_id);
+		addDeviceId(device_id);
 
 		spotifyApi.transferMyPlayback([device_id]);
 	});
@@ -50,22 +50,18 @@ const setupSpotifyConnect = (token, setDeviceId) => {
 	player.connect();
 };
 
-const ScreenRoot = ({ token, fetchUser, playlists, fetchPlaylist }) => {
-	console.log(token);
-	const [deviceId, setDeviceId] = useState();
-
+const ScreenRoot = ({ token, fetchUser, fetchPlaylist, addDeviceId }) => {
 	useEffect(() => {
 		// Set up spotify:
 		spotifyApi.setAccessToken(token);
 
 		window.onSpotifyWebPlaybackSDKReady = () => {
-			setupSpotifyConnect(token, setDeviceId);
+			setupSpotifyConnect(token, addDeviceId);
 		};
 
 		const getData = async () => {
 			fetchUser(spotifyApi);
 			fetchPlaylist(spotifyApi);
-			// fetchDeviceID(spotifyApi)
 
 			const devices = await spotifyApi.getMyDevices();
 		};
@@ -89,13 +85,7 @@ const ScreenRoot = ({ token, fetchUser, playlists, fetchPlaylist }) => {
 					</Switch>
 					<SideNav />
 				</Box>
-				<Player
-					spotifyApi={spotifyApi}
-					deviceId={deviceId}
-					image="./Floyd-logo.jpg"
-					title={'Brick'}
-					artist={'Pink Floyd'}
-				/>
+				<Player spotifyApi={spotifyApi} />
 				<MobileNav />
 			</Router>
 		);
@@ -106,15 +96,15 @@ const ScreenRoot = ({ token, fetchUser, playlists, fetchPlaylist }) => {
 
 const mapState = (state) => {
 	return {
-		token: state.auth.token,
-		playlists: state.playlist.items
+		token: state.auth.token
 	};
 };
 
 const mapDispatch = (dispatch) => {
 	return {
 		fetchUser: (spotifyApi) => dispatch(fetchUser(spotifyApi)),
-		fetchPlaylist: (spotifyApi) => dispatch(fetchPlaylist(spotifyApi))
+		fetchPlaylist: (spotifyApi) => dispatch(fetchPlaylist(spotifyApi)),
+		addDeviceId: (id) => dispatch(addDeviceId(id))
 	};
 };
 

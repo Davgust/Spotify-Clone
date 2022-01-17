@@ -6,17 +6,18 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
 import PauseIcon from '@mui/icons-material/Pause';
+import { connect } from 'react-redux';
+import { play, pause } from '../../reduxStore/actions/index';
 
-const Player = ({ spotifyApi, deviceId, image, title, artist }) => {
+const Player = ({ spotifyApi, deviceId, pause, play, playing }) => {
 	const [volume, setVolume] = useState(30);
-	const [playing, setPlaying] = useState(false);
 	const [songInfo, setSongInfo] = useState([]);
 	const [songProgress, setSongProgress] = useState({});
 
 	useEffect(() => {
 		const getStartSongInfo = async () => {
-			const recentlyPlayedSong = await spotifyApi.getMyRecentlyPlayedTracks({ limit: 1 });
-			const item = recentlyPlayedSong.body.items[0].track;
+			const recentlyPlayedSongs = await spotifyApi.getMyRecentlyPlayedTracks({ limit: 1 });
+			const item = recentlyPlayedSongs.body.items[0].track;
 
 			const duration = item.duration_ms / 1000;
 			const progress = 0;
@@ -29,7 +30,7 @@ const Player = ({ spotifyApi, deviceId, image, title, artist }) => {
 			setSongProgress(progress);
 		};
 		getStartSongInfo();
-	}, []);
+	}, [spotifyApi]);
 
 	const formatTime = (value) => {
 		const rest = (value % 60).toFixed(0);
@@ -50,8 +51,9 @@ const Player = ({ spotifyApi, deviceId, image, title, artist }) => {
 		return () => clearInterval(interval);
 	}, [playing, songProgress]);
 
-	const togglePlay = async (isPlaying) => {
-		if (!isPlaying) {
+	const togglePlay = async () => {
+		if (!playing) {
+			play();
 			try {
 				const transferPlayback = await spotifyApi.transferMyPlayback([deviceId]);
 				console.log({ transferPlayback });
@@ -63,6 +65,7 @@ const Player = ({ spotifyApi, deviceId, image, title, artist }) => {
 				console.error(e);
 			}
 		} else {
+			pause();
 			const tryToPause = await spotifyApi.pause();
 			console.log({ tryToPause });
 		}
@@ -130,7 +133,7 @@ const Player = ({ spotifyApi, deviceId, image, title, artist }) => {
 				<Grid item xs={4} md={3} sx={{ display: 'flex', alignItems: 'center' }}>
 					<Stack direction="row" spacing={4}>
 						<Avatar
-							alt={title}
+							alt={songInfo.title}
 							src={songInfo.image ? songInfo.image.url : ''}
 							variant="square"
 							sx={{ width: '56px', height: '56px', display: { xs: 'none', md: 'block' } }}
@@ -153,25 +156,14 @@ const Player = ({ spotifyApi, deviceId, image, title, artist }) => {
 								sx={{ color: 'text.secondary' }}
 								onClick={async () => {
 									console.log('Skip prev');
-									try {
-										setPlaying(true);
-										await spotifyApi.skipToPrevious();
-										updateSongInfo();
-									} catch (e) {
-										console.error(e);
-									}
+									play();
+									await spotifyApi.skipToPrevious();
+									updateSongInfo();
 								}}
 							>
 								<SkipPreviousIcon />
 							</IconButton>
-							<IconButton
-								size="small"
-								sx={{ color: 'text.secondary' }}
-								onClick={() => {
-									setPlaying((v) => !v);
-									togglePlay(playing);
-								}}
-							>
+							<IconButton size="small" sx={{ color: 'text.secondary' }} onClick={togglePlay}>
 								{playing ? <PauseIcon fontSize="large" /> : <PlayArrowIcon fontSize="large" />}
 							</IconButton>
 							<IconButton
@@ -179,7 +171,7 @@ const Player = ({ spotifyApi, deviceId, image, title, artist }) => {
 								sx={{ color: 'text.secondary' }}
 								onClick={async () => {
 									console.log('Next');
-									setPlaying(true);
+									play();
 									await spotifyApi.skipToNext();
 									updateSongInfo();
 								}}
@@ -226,4 +218,18 @@ const Player = ({ spotifyApi, deviceId, image, title, artist }) => {
 	);
 };
 
-export default Player;
+const mapState = (state) => {
+	return {
+		deviceId: state.player.device_id,
+		playing: state.player.playing
+	};
+};
+
+const mapDispatch = (dispatch) => {
+	return {
+		play: () => dispatch(play()),
+		pause: () => dispatch(pause())
+	};
+};
+
+export default connect(mapState, mapDispatch)(Player);

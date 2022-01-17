@@ -40,7 +40,7 @@ const fetchUserSuccess = (data) => {
 
 export const fetchUser = (spotifyApi) => {
 	return async (dispatch) => {
-		dispatch(fetchTokenStart());
+		dispatch(fetchUserStart());
 		try {
 			const me = await spotifyApi.getMe();
 			dispatch(fetchUserSuccess(me));

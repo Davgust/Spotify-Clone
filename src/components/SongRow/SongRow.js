@@ -1,6 +1,8 @@
 import { TableCell, TableRow, Avatar, Typography, Skeleton, Box } from '@mui/material';
+import { connect } from 'react-redux';
+import { play } from '../../reduxStore/actions';
 
-const SongRow = ({ spotifyApi, playlistId, track, index, loading }) => {
+const SongRow = ({ spotifyApi, playlistId, track, index, loading, play }) => {
 	const image = track.album.images[2].url;
 	const title = track.name;
 	const artist = track.artists[0].name;
@@ -28,6 +30,16 @@ const SongRow = ({ spotifyApi, playlistId, track, index, loading }) => {
 		return `${min}:${seconds}`;
 	};
 
+	const onRowClick = async (params) => {
+		await spotifyApi.play({
+			context_uri: `spotify:playlist:${playlistId}`,
+			offset: {
+				position: index
+			}
+		});
+		play();
+	};
+
 	return (
 		<TableRow
 			key={index}
@@ -38,14 +50,7 @@ const SongRow = ({ spotifyApi, playlistId, track, index, loading }) => {
 					backgroundColor: '#d8d8d821 !important'
 				}
 			}}
-			onClick={() =>
-				spotifyApi.play({
-					context_uri: `spotify:playlist:${playlistId}`,
-					offset: {
-						position: index
-					}
-				})
-			}
+			onClick={onRowClick}
 			hover={true}
 		>
 			<TableCell>{loading ? <Skeleton variant="rectangular" width={20} height={30} /> : index + 1}</TableCell>
@@ -60,4 +65,10 @@ const SongRow = ({ spotifyApi, playlistId, track, index, loading }) => {
 	);
 };
 
-export default SongRow;
+const mapDispatch = (dispatch) => {
+	return {
+		play: () => dispatch(play())
+	};
+};
+
+export default connect(null, mapDispatch)(SongRow);
