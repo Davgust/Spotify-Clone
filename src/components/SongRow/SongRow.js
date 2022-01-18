@@ -1,8 +1,35 @@
 import { TableCell, TableRow, Avatar, Typography, Skeleton, Box } from '@mui/material';
 import { connect } from 'react-redux';
-import { play } from '../../reduxStore/actions';
+import { play, updateSongInfo } from '../../reduxStore/actions';
 
-const SongRow = ({ spotifyApi, playlistId, track, index, loading, play }) => {
+const SongRow = ({ spotifyApi, playlistId, track, index, loading, play, updateSongInfo }) => {
+	const style = {
+		'& td': { border: 0 },
+		cursor: 'pointer',
+		'&:hover': {
+			backgroundColor: '#d8d8d821 !important'
+		}
+	};
+
+	if (loading) {
+		return (
+			<TableRow key={index} sx={style} hover={true}>
+				<TableCell>
+					<Skeleton variant="rectangular" width={20} height={30} />
+				</TableCell>
+				<TableCell>
+					<Skeleton variant="rectangular" width={20} height={30} />
+				</TableCell>
+				<TableCell align="right" sx={{ color: 'text.secondary', display: { xs: 'none', md: 'table-cell' } }}>
+					<Skeleton variant="rectangular" width={20} height={30} />
+				</TableCell>
+				<TableCell align="right" sx={{ color: 'text.secondary', display: { xs: 'none', md: 'table-cell' } }}>
+					<Skeleton variant="rectangular" width={20} height={30} />
+				</TableCell>
+			</TableRow>
+		);
+	}
+
 	const image = track.album.images[2].url;
 	const title = track.name;
 	const artist = track.artists[0].name;
@@ -38,28 +65,20 @@ const SongRow = ({ spotifyApi, playlistId, track, index, loading, play }) => {
 			}
 		});
 		play();
+		updateSongInfo(spotifyApi);
 	};
 
 	return (
-		<TableRow
-			key={index}
-			sx={{
-				'& td': { border: 0 },
-				cursor: 'pointer',
-				'&:hover': {
-					backgroundColor: '#d8d8d821 !important'
-				}
-			}}
-			onClick={onRowClick}
-			hover={true}
-		>
-			<TableCell>{loading ? <Skeleton variant="rectangular" width={20} height={30} /> : index + 1}</TableCell>
-			<TableCell>{loading ? <Skeleton variant="rectangular" width={50} height={50} /> : <Title />}</TableCell>
-			<TableCell align="right" sx={{ color: 'text.secondary', display: { xs: 'none', md: 'table-cell' } }}>
-				{loading ? <Skeleton variant="rectangular" width={50} height={30} /> : album}
+		<TableRow key={index} sx={style} onClick={onRowClick} hover={true}>
+			<TableCell>{index + 1}</TableCell>
+			<TableCell>
+				<Title />
 			</TableCell>
 			<TableCell align="right" sx={{ color: 'text.secondary', display: { xs: 'none', md: 'table-cell' } }}>
-				{loading ? <Skeleton variant="rectangular" width={20} height={30} /> : formatTime(duration / 1000)}
+				{album}
+			</TableCell>
+			<TableCell align="right" sx={{ color: 'text.secondary', display: { xs: 'none', md: 'table-cell' } }}>
+				{formatTime(duration)}
 			</TableCell>
 		</TableRow>
 	);
@@ -67,7 +86,8 @@ const SongRow = ({ spotifyApi, playlistId, track, index, loading, play }) => {
 
 const mapDispatch = (dispatch) => {
 	return {
-		play: () => dispatch(play())
+		play: () => dispatch(play()),
+		updateSongInfo: (spotifyApi) => dispatch(updateSongInfo(spotifyApi))
 	};
 };
 
