@@ -1,8 +1,8 @@
 import { TableCell, TableRow, Avatar, Typography, Skeleton, Box } from '@mui/material';
 import { connect } from 'react-redux';
-import { play, updateSongInfo } from '../../reduxStore/actions';
+import { playNewSong } from '../../reduxStore/actions';
 
-const SongRow = ({ spotifyApi, playlistId, track, index, loading, play, updateSongInfo }) => {
+const SongRow = ({ spotifyApi, track, index, loading, playNewSong, contextUri, position }) => {
 	const style = {
 		'& td': { border: 0 },
 		cursor: 'pointer',
@@ -39,7 +39,7 @@ const SongRow = ({ spotifyApi, playlistId, track, index, loading, play, updateSo
 	const Title = () => {
 		return (
 			<Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', marginTop: '20px' }}>
-				<Avatar alt={album} src={image} variant="square" />
+				<Avatar alt={album} src={image} variant="square" sx={{ width: '60px', height: '60px' }} />
 				<Box ml={2}>
 					<Typography variant="subtitle1">{title}</Typography>
 					<Typography variant="body1" sx={{ color: 'text.secondary' }}>
@@ -57,15 +57,15 @@ const SongRow = ({ spotifyApi, playlistId, track, index, loading, play, updateSo
 		return `${min}:${seconds}`;
 	};
 
-	const onRowClick = async (params) => {
-		await spotifyApi.play({
-			context_uri: `spotify:playlist:${playlistId}`,
+	const onRowClick = async () => {
+		const song = {
+			context_uri: contextUri,
 			offset: {
-				position: index
+				position
 			}
-		});
-		play();
-		updateSongInfo(spotifyApi);
+		};
+
+		playNewSong(spotifyApi, song);
 	};
 
 	return (
@@ -78,7 +78,7 @@ const SongRow = ({ spotifyApi, playlistId, track, index, loading, play, updateSo
 				{album}
 			</TableCell>
 			<TableCell align="right" sx={{ color: 'text.secondary', display: { xs: 'none', md: 'table-cell' } }}>
-				{formatTime(duration)}
+				{formatTime(duration / 1000)}
 			</TableCell>
 		</TableRow>
 	);
@@ -86,8 +86,7 @@ const SongRow = ({ spotifyApi, playlistId, track, index, loading, play, updateSo
 
 const mapDispatch = (dispatch) => {
 	return {
-		play: () => dispatch(play()),
-		updateSongInfo: (spotifyApi) => dispatch(updateSongInfo(spotifyApi))
+		playNewSong: (spotifyApi, song) => dispatch(playNewSong(spotifyApi, song))
 	};
 };
 

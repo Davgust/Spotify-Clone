@@ -4,6 +4,10 @@ export const addDeviceId = (device_id) => ({ type: actionTypes.ADD_DEVICE_ID, pa
 export const play = () => ({ type: actionTypes.PLAY });
 export const pause = () => ({ type: actionTypes.PAUSE });
 
+export const setProgress = (progress) => {
+	return {type: actionTypes.SET_PROGRESS, payload: progress}
+}
+
 export const updatePlayerStart = () => {
 	return {
 		type: actionTypes.UPDATE_PLAYER_START
@@ -24,21 +28,25 @@ export const updatePlayerSuccess = (payload) => {
 	};
 };
 
+export const playNewSong = (spotifyApi, song = {}) => {
+	return async (dispatch) => {
+		dispatch(updatePlayerStart());
+		try {
+			await spotifyApi.play(song);
+			const data = await getMyCurrentPlayingTrack(spotifyApi);
+			dispatch(updatePlayerSuccess(data));
+			dispatch(play());
+		} catch (e) {
+			dispatch(updatePlayerFail(e));
+		}
+	};
+};
+
 export const updateSongInfo = (spotifyApi) => {
 	return async (dispatch) => {
 		dispatch(updatePlayerStart());
 		try {
-			const currentSong = await spotifyApi.getMyCurrentPlayingTrack();
-			const item = currentSong.body.item;
-			const duration = item.duration_ms / 1000;
-			const progress = currentSong.body.progress_ms / 1000;
-			const data = {
-				title: item.name,
-				image: item.album.images[1],
-				artist: item.artists[0].name,
-				duration,
-				progress
-			};
+			const data = await getMyCurrentPlayingTrack(spotifyApi);
 			dispatch(updatePlayerSuccess(data));
 		} catch (error) {
 			dispatch(updatePlayerFail(error));
@@ -47,9 +55,12 @@ export const updateSongInfo = (spotifyApi) => {
 };
 
 export const updateSongInfoStart = (spotifyApi) => {
-	return async (dispatch) => {
+	return async (dispatch, getState) => {
 		dispatch(updatePlayerStart());
 		try {
+			const state = getState();
+			const { token } = state.auth;
+			await spotifyApi.setAccessToken(token);
 			const song = await spotifyApi.getMyRecentlyPlayedTracks({ limit: 1 });
 			const item = song.body.items[0].track;
 			const duration = item.duration_ms / 1000;
@@ -64,5 +75,19 @@ export const updateSongInfoStart = (spotifyApi) => {
 		} catch (error) {
 			dispatch(updatePlayerFail(error));
 		}
+	};
+};
+
+const getMyCurrentPlayingTrack = async (spotifyApi) => {
+	const currentSong = await spotifyApi.getMyCurrentPlayingTrack();
+	const item = currentSong.body.item;
+	const duration = item.duration_ms / 1000;
+	const progress = currentSong.body.progress_ms / 1000;
+	return {
+		title: item.name,
+		image: item.album.images[1],
+		artist: item.artists[0].name,
+		duration,
+		progress
 	};
 };

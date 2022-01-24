@@ -23,6 +23,9 @@ const reducer = (state = initState, action) => {
 		case actionTypes.PAUSE:
 			return { ...state, playing: false };
 
+		case actionTypes.SET_PROGRESS:
+			return { ...state, progress: action.payload };
+
 		//API
 		case actionTypes.UPDATE_PLAYER_START:
 			return { ...state, error: null, loading: true };
