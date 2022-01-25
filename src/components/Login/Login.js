@@ -1,4 +1,4 @@
-import { Box, Button } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 import { accessUrl } from '../../login-to-spotify';
 
 const Login = (params) => {
@@ -19,6 +19,7 @@ const Login = (params) => {
 				width={250}
 				style={{ marginBottom: '150px', width: '70%', maxWidth: 500 }}
 			/>
+
 			<Button
 				href={accessUrl}
 				color="primary"
@@ -28,6 +29,9 @@ const Login = (params) => {
 			>
 				Log in to Spotify
 			</Button>
+			<Typography variant="caption" color="text.primary" sx={{ marginTop: 5 }}>
+				This application was built with <br /> Spotifys API for authentication.
+			</Typography>
 		</Box>
 	);
 };
