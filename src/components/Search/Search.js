@@ -24,6 +24,13 @@ const Search = ({ spotifyApi }) => {
 		e.preventDefault();
 		setLoading(true);
 		const { value } = e.target;
+
+		if (value === '') {
+			setSongs(null);
+			setLoading(false);
+			return;
+		}
+
 		try {
 			const result = await spotifyApi.searchTracks(value);
 			const { items } = result.body.tracks;

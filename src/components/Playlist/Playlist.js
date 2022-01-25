@@ -21,7 +21,7 @@ const Playlist = ({ spotifyApi, loading }) => {
 
 			const allSongs = await spotifyApi.getPlaylistTracks(playlistId);
 			const formattedSongs = formatSongData(allSongs.body.items);
-			setSongs(allSongs.body.items);
+			setSongs(formattedSongs);
 		};
 		getData();
 	}, [playlistId]);

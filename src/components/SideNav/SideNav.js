@@ -3,12 +3,10 @@ import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divide
 import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
 import SideNavOption from '../SideNavOption/SideNavOption';
-import { useHistory } from 'react-router-dom';
 import { connect } from 'react-redux';
+import { NavLink } from 'react-router-dom';
 
 function SideNav({ items, loading }) {
-	const history = useHistory();
-
 	const renderPlaylists = () => {
 		if (loading) return 'Loading';
 		return items.map((playlist, i) => <SideNavOption {...playlist} key={i} />);
@@ -32,7 +30,7 @@ function SideNav({ items, loading }) {
 				<nav aria-label="main mailbox folders">
 					<List>
 						<ListItem disablePadding>
-							<ListItemButton onClick={() => history.push('/')}>
+							<ListItemButton to="/" component={NavLink}>
 								<ListItemIcon>
 									<HomeIcon sx={{ color: 'text.primary' }} />
 								</ListItemIcon>
@@ -40,7 +38,7 @@ function SideNav({ items, loading }) {
 							</ListItemButton>
 						</ListItem>
 						<ListItem disablePadding>
-							<ListItemButton onClick={() => history.push('/search')}>
+							<ListItemButton to="/search" component={NavLink}>
 								<ListItemIcon>
 									<SearchIcon sx={{ color: 'text.primary' }} />
 								</ListItemIcon>
@@ -50,7 +48,15 @@ function SideNav({ items, loading }) {
 					</List>
 				</nav>
 				<Divider sx={{ bgcolor: 'text.secondary' }} variant="middle" />
-				<List style={{ maxHeight: 600, overflow: 'auto', scrollbarWidth: 'none' }}>{renderPlaylists()}</List>
+				<List
+					style={{
+						maxHeight: 600,
+						overflow: 'auto',
+						scrollbarWidth: 'none'
+					}}
+				>
+					{renderPlaylists()}
+				</List>
 			</Box>
 		</Box>
 	);
